@@ -1,0 +1,79 @@
+@import url("https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@500,700,800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 222 29% 6%;
+        --foreground: 210 30% 96%;
+        --card: 220 32% 13%;
+        --card-foreground: 210 30% 96%;
+        --popover: 222 31% 10%;
+        --popover-foreground: 210 30% 96%;
+        --primary: 32 95% 44%;
+        --primary-foreground: 222 29% 6%;
+        --secondary: 220 25% 18%;
+        --secondary-foreground: 210 30% 96%;
+        --muted: 220 25% 16%;
+        --muted-foreground: 218 15% 62%;
+        --accent: 220 25% 18%;
+        --accent-foreground: 210 30% 96%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 220 22% 20%;
+        --input: 220 22% 22%;
+        --ring: 32 95% 44%;
+        --radius: 0.75rem;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+        margin: 0;
+        font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, h4, .font-display {
+        font-family: "Cabinet Grotesk", "IBM Plex Sans", sans-serif;
+    }
+    .font-mono, code {
+        font-family: "JetBrains Mono", monospace;
+    }
+    ::selection {
+        background: rgba(217, 119, 6, 0.35);
+    }
+}
+
+.ppf-edge {
+    position: relative;
+}
+.ppf-edge::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.6), transparent);
+}
+.grain {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 3px 3px;
+}
+.fade-up {
+    animation: fadeUp 0.45s ease both;
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+.nselect {
+    @apply h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring;
+}

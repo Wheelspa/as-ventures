@@ -1,0 +1,197 @@
+{
+  "project_name": "Wheelspa PPF Distribution & Investor Transparency Portal",
+  "archetype": "The Performance Pro & Tactical Luxury Detailing (Automotive Engineering Precision + High-Trust Transparent Fintech)",
+  "theme_strategy": {
+    "default_mode": "dark",
+    "support_toggle": true,
+    "dark_canvas": "#0B0E14",
+    "dark_surface": "#121722",
+    "dark_card": "#161D2B",
+    "light_canvas": "#F8FAFC",
+    "light_surface": "#FFFFFF",
+    "light_card": "#F1F5F9",
+    "accent_brand": "#D97706",
+    "accent_brand_hover": "#B45309",
+    "status_tokens": {
+      "green_completed": {
+        "text": "#10B981",
+        "bg_dark": "rgba(16, 185, 129, 0.12)",
+        "border_dark": "rgba(16, 185, 129, 0.35)",
+        "bg_light": "#ECFDF5",
+        "border_light": "#A7F3D0",
+        "meaning": "Settled transactions, verified bank proofs, active roll inventory, acknowledged returns"
+      },
+      "amber_pending": {
+        "text": "#F59E0B",
+        "bg_dark": "rgba(245, 158, 11, 0.14)",
+        "border_dark": "rgba(245, 158, 11, 0.35)",
+        "bg_light": "#FFFBEB",
+        "border_light": "#FDE68A",
+        "meaning": "Pending settlements, proof uploaded awaiting verification, in-transit rolls"
+      },
+      "red_overdue": {
+        "text": "#EF4444",
+        "bg_dark": "rgba(239, 68, 68, 0.14)",
+        "border_dark": "rgba(239, 68, 68, 0.35)",
+        "bg_light": "#FEF2F2",
+        "border_light": "#FECACA",
+        "meaning": "Overdue recoveries, margin discrepancies, investor dispute/queries escalated"
+      }
+    }
+  },
+  "typography": {
+    "headline_font": "Cabinet Grotesk, Outfit, -apple-system, sans-serif",
+    "body_font": "IBM Plex Sans, -apple-system, BlinkMacSystemFont, sans-serif",
+    "numbers_and_financials": "JetBrains Mono, monospace",
+    "scale": {
+      "hero_h1": "text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight",
+      "section_h2": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "sub_h3": "text-xl sm:text-2xl font-semibold",
+      "card_h4": "text-base sm:text-lg font-semibold",
+      "body_base": "text-sm sm:text-base leading-relaxed",
+      "kpi_metric": "text-2xl sm:text-3xl lg:text-4xl font-mono font-bold tracking-tight",
+      "caption_label": "text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground"
+    }
+  },
+  "currency_and_localization": {
+    "currency_symbol": "₹",
+    "number_format": "en-IN (e.g. ₹12,50,000.00)",
+    "timezone": "Asia/Kolkata (IST)",
+    "date_format": "DD MMM YYYY, hh:mm A IST"
+  },
+  "visual_enhancers": {
+    "subtle_carbon_texture": "Use 1px borders with border-border/60 and glassmorphic micro-glow for automotive detailing feel without visual clutter",
+    "ppf_gloss_highlight": "Subtle top border highlight line (1px gradient from amber/50 to transparent) on primary KPI cards to emulate ultra-clear self-healing film edge",
+    "card_structure": "Rounded-xl border border-border/40 p-5 sm:p-6 bg-card backdrop-blur-md transition-all hover:border-amber-500/40",
+    "badge_style": "px-2.5 py-1 rounded-full text-xs font-mono font-semibold inline-flex items-center gap-1.5"
+  },
+  "navigation_and_header": {
+    "desktop_nav": "Sticky top bar with Wheelspa automotive logo badge, role selector (Super Admin / Accounts / Management / Investor), quick live stats, notifications bell, and user profile with IST timestamp",
+    "mobile_nav": "Collapsible sheet drawer with quick navigation links and role switcher",
+    "roles": [
+      {
+        "id": "super_admin",
+        "name": "Super Admin",
+        "description": "Full access to inventory, pricing terms, investor ledger, audits, user management"
+      },
+      {
+        "id": "accounts",
+        "name": "Accounts Team",
+        "description": "Upload bank UTR receipts, compute settlement payouts, verify margin reconciliations"
+      },
+      {
+        "id": "management",
+        "name": "Executive Management",
+        "description": "High-level margin split tracking, ROI velocity, executive reports & audit trail"
+      },
+      {
+        "id": "investor",
+        "name": "Investor Portal",
+        "description": "Personal investment overview, roll batch ownership, principal recovery status, profit payouts, dispute query submission"
+      }
+    ]
+  },
+  "core_pages_and_features": [
+    {
+      "key": "admin_dashboard",
+      "name": "Executive & Admin Dashboard",
+      "components": [
+        "KPI metric cards (Total Capital Deployed, Active PPF Inventory Value, Principal Recovered, Investor Profit Disbursed, Wheelspa Gross Margin, Overdue Settlements)",
+        "Sales & Margin Split Trend Chart (Base Price vs Investor 15% vs Wheelspa 15% vs 18% GST)",
+        "Inventory Status Donut (In Stock / Reserved / Installed / Warranty Claimed)",
+        "Recent Settlement Queue with Green/Amber/Red badges",
+        "Quick Actions (Log Roll Batch, Create Sales Order, Process Payout)"
+      ]
+    },
+    {
+      "key": "investor_portal",
+      "name": "Investor Transparency Dashboard",
+      "components": [
+        "Investor Portfolio Summary (Invested Capital, Repaid Principal, Realized Net Returns, Pending Return Balance)",
+        "Allocated Roll Batches with unique Roll Serial IDs (e.g., WSP-PPF-2026-089)",
+        "Order-to-Order Real-time Recovery timeline (Track each roll sale to principal & profit return)",
+        "Bank Proof Document Viewer (UTR number, NEFT receipt download, verified stamp)",
+        "Investor Query / Dispute Raiser with conversational thread"
+      ]
+    },
+    {
+      "key": "inventory_rolls",
+      "name": "PPF Roll Procurement & Inventory",
+      "components": [
+        "Procurement Batch intake with Investor funding tagging",
+        "Unique Serial Roll ID tracker (Thickness in Mil, Roll length in Meters, Grade: TPU Ultra Gloss / Matte)",
+        "Real-time roll status (Available, Assigned to Sales Order, Installed at Studio)",
+        "Search & multi-filter by roll ID, investor, grade, batch date"
+      ]
+    },
+    {
+      "key": "sales_and_calculation",
+      "name": "Sales Orders & Automated Financial Calculator",
+      "components": [
+        "Formula display card: Sale Price = Base Price + 30% Margin (15% Investor + 15% Wheelspa) + 18% GST",
+        "Interactive live calculator simulator with instant split breakdown",
+        "Sales Order Table with customer car model (e.g. Porsche 911, BMW M3, Thar Roxx, Defender), rolls consumed, investor tagged, payment status",
+        "Filter by payment status and settlement phase"
+      ]
+    },
+    {
+      "key": "settlements_workflow",
+      "name": "Settlements & Bank Proof Verification",
+      "components": [
+        "Multi-stage pipeline: Pending Calculation -> Proof Uploaded -> Accounts Verified -> Investor Acknowledged",
+        "Modal to upload Bank Remittance / UTR Proof with amount check",
+        "Dispute flag with Amber/Red badge",
+        "1-click investor acknowledgement button"
+      ]
+    },
+    {
+      "key": "immutable_ledger",
+      "name": "Immutable Financial Ledger & Audit Trail",
+      "components": [
+        "Cryptographically hashed or sequenced transaction journal (Debit, Credit, Balance, Timestamp IST, Performed By)",
+        "Audit Log with IP, action type (Roll Created, Margin Disbursed, Price Term Edited), previous vs new value diff",
+        "Export buttons for PDF and Excel (CSV)"
+      ]
+    },
+    {
+      "key": "investor_queries",
+      "name": "Investor Queries & Resolution Desk",
+      "components": [
+        "Tickets linked to specific Order ID or Settlement ID",
+        "Status: Open (Amber), Resolved (Green), Escalated (Red)",
+        "Direct reply drawer with audit logging"
+      ]
+    },
+    {
+      "key": "reports_and_exports",
+      "name": "Financial Reports & Tax Statements",
+      "components": [
+        "Investor ROI Statement generator (printable / PDF / CSV)",
+        "GST Breakdown Report (18% output GST reconciled)",
+        "Annual batch performance comparison"
+      ]
+    }
+  ],
+  "image_urls": {
+    "automotive_hero_surface": "https://images.unsplash.com/photo-1780568239721-9922fabf2fed?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjBjYXIlMjBkZXRhaWxpbmclMjBnbG9zc3xlbnwwfHx8fDE3OTI1MTY3MTh8MA&ixlib=rb-4.1.0&q=85",
+    "automotive_detailing_gloss": "https://images.unsplash.com/photo-1788763646531-dbde77245e66?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHw0fHxsdXh1cnklMjBjYXIlMjBkZXRhaWxpbmclMjBnbG9zc3xlbnwwfHx8fDE3OTI1MTY3MTh8MA&ixlib=rb-4.1.0&q=85",
+    "carbon_fiber_texture": "https://images.unsplash.com/photo-1666555038185-8323c553de64?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwzfHxjYXJib24lMjBmaWJlciUyMHRleHR1cmUlMjBkYXJrfGVufDB8fHx8MTc5MjUxNjczM3ww&ixlib=rb-4.1.0&q=85",
+    "wheelspa_brand_badge": "Wheelspa Automotive PPF Distribution & Investor Portal"
+  },
+  "instructions_to_main_agent": [
+    "Implement in React (.js / .jsx) using existing Tailwind and Lucide icons.",
+    "Do NOT use pure transparent background in headers, dialogs, popovers, or tables.",
+    "Ensure every interactive element and KPI card has a unique data-testid attribute (e.g. data-testid='kpi-total-capital', data-testid='role-switcher-select', data-testid='upload-bank-proof-btn', data-testid='acknowledge-settlement-btn').",
+    "Implement role switching seamlessly so users can preview the app from Super Admin, Accounts, Management, and Investor perspectives.",
+    "Include pre-seeded realistic Indian automotive detailing data with Indian Rupee (₹) amounts, realistic UTR numbers (e.g. HDFC00012398471), Indian investor names (e.g. Rajesh Singhania, Priya Mehta, Vikramaditya Varma), and car models (Porsche 911 GT3, Land Rover Defender 110, BMW M3 Competition, Mahindra Thar Roxx).",
+    "Provide realistic export triggers for PDF and Excel that generate cleanly formatted downloadable files or print preview.",
+    "Provide comprehensive interactive features: Add Investment, Register Roll Batch with generated Serial IDs, Create Sales Order with auto calculation preview, Upload Settlement Proof with UTR & Date, Acknowledge Payout, Raise Investor Query, and Filter/Search on all tables."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": {
+    "no_ai_slop": "Use sharp, high-contrast tactical styling appropriate for a premier luxury automotive brand.",
+    "color_discipline": "Green for completed, Amber for pending, Red for overdue/discrepancies. Primary accent is warm amber/gold detailing hue (#D97706).",
+    "spacing": "Use p-6 to p-8 with gap-6 for breathing room. No crowded cramped tables; provide horizontal scrolling with sticky columns when needed.",
+    "number_formatting": "Always format Indian currency using Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).",
+    "toasts": "Use Sonner for toasts upon actions (e.g., 'Bank proof verified for Roll Batch #WSP-702', 'Dispute logged to Accounts')."
+  }
+}

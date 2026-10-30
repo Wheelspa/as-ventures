@@ -1,0 +1,43 @@
+{
+  "summary": "Tested the Super Admin edit/void/delete feature end to end. Backend: 68 in-browser authenticated API checks (admin_edit_delete_flow.js), 66 passed. UI: Playwright flows on Investors, SaleDetail, Inventory, Purchases, InvestorDetail, Audit and Reconciliation. Role gating works: accounts, mgmt and investor get 403 on PATCH /api/admin/* and POST /api/admin/*/remove, and none of them see edit or delete buttons (sale detail, investors, investor detail). Admin sees them. Descriptive edits work and propagate: purchase supplier/brand to its rolls; roll_id to sale and settlement roll_serial (a duplicate roll_id gives 409); sale customer_name to settlements; investor name; transfer UTR; collection reference. Money edits work: investment amount (invested changes; reducing a seeded investment below available gives 400). Purchase unit_cost/other_charges/amount_paid/gst_pct recalculate subtotal, GST, total and payment_status. A purchase paid amount above the total gives 400. A base price change adjusts allocated, and gives 409 once a roll is reserved or sold. Collection edit to 80% recalculates collected, status (partially_paid) and settlement recoverable. Reducing a collection below committed transfers gives 409. Transfer edits (initiated and verified) respect the recoverable cap (400), and editing a verified transfer moves repaid. Dependency rules: sale with collections 409; collection delete with an active transfer 409; purchase with reserved/sold rolls 409; investor with investments 409. Void and delete both work. Voiding/deleting a sale releases its roll to in_stock, and a deleted sale/investor returns 404. The audit trail shows RECORD_EDITED (changes [before, after] plus reason), RECORD_VOIDED and RECORD_DELETED with the before snapshot. Reconciliation was all OK at every checkpoint (11 checkpoints plus the UI page). Investor A balances ended identical to the start. Regression: dashboard, sales list, settlements and sale detail load fine.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PATCH /api/admin/purchases/{id} fields.gst_pct", "issue": "gst_pct '' (the user clears the field in the edit dialog) or a non-numeric value returns 500: ValueError could not convert string to float in corrections.py line 162 (float(fields['gst_pct'])). It should return 400 'Invalid GST %' and also validate the range 0-100."},
+      {"endpoint": "GET /api/sales (and GET /api/transfers)", "issue": "Voided records are not filtered. The voided sale SO-00008 still shows in the Sales Orders list with a 'Voided' badge, and voided transfers are listed. The Remove dialog says voided records are 'Hidden from lists and totals'. Either filter with voided != true (maybe with a 'Show voided' filter) or change the dialog copy."},
+      {"endpoint": "edit_record date fields (investments.date, collections.date, sales.invoice_date, purchases.purchase_date, transfers.date)", "issue": "Code review: editing a date changes only the source document. The related ledger entries keep the old date, so period reports and monthly statements (which filter the ledger by date) will disagree with the record. Either post a reversal plus a re-post on the new date, or update the ledger dates with an audit note."},
+      {"endpoint": "_apply_collection_delta", "issue": "Code review: the settlement recoverable is set from a plan computed before the update. A transfer created at the same moment between the plan and the $set could leave committed > recoverable. Add a $expr guard (committed <= new recoverable) to the settlement update."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "AdminActions EditDialog (purchases)", "issue": "Clearing 'GST on purchase %' sends '' and the backend gives a 500 with a generic toast. Validate on the client or omit empty numeric fields.", "selector": "[data-testid=purchase-PO-xxxx-edit-gst_pct]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Edit dialogs", "issues": ["Date fields still use the native <input type=date> (mm/dd/yyyy), not the shadcn Calendar", "Purchase edit dialog shows all 13 fields, including base price, even when rolls are sold. Consider disabling base price with a hint when it can no longer change."]},
+      {"screen": "Audit Trail", "issues": ["Details for RECORD_VOIDED/DELETED dump the full raw JSON before snapshot (very long rows with ids and paise). Consider a collapsible view or a formatted before→after table for RECORD_EDITED."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/admin_edit_delete_flow.js", "/app/backend/tests/test_wheelspa_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "corrections.py line 162: wrap float(fields['gst_pct']) in a try/except and raise 400 for blank or invalid values. Also validate 0 <= gst_pct <= 100.",
+    "Filter voided sales and transfers out of GET /api/sales and GET /api/transfers (or offer a 'Voided' filter tab), to match the 'Hidden from lists' promise in the Remove dialog.",
+    "When date fields are edited, keep the ledger entry dates in sync (or block date edits on records with ledger postings).",
+    "Optional: guard the settlement recoverable update in _apply_collection_delta with a committed <= recoverable condition."
+  ],
+  "critical_code_review_comments": [
+    "Money logic for corrections is consistent: every balance change posts a signed delta ledger entry with a reason, and reconciliation stayed green across all edit, void and delete scenarios tested.",
+    "Purchase unit_cost/other_charges edits also rewrite landed_cost on rolls that are already sold. Historic cost changes after the sale; this may be intended.",
+    "edit_record allows editing collections and transfers of a voided or cancelled sale (there is no NV check on the parent sale). This is an edge case.",
+    "Voided sales keep the roll_serial and invoice_no of the voided roll. The voided purchase's rolls stay in the DB with status 'voided', and the reconciliation excludes them correctly."
+  ],
+  "updated_files": ["/app/backend/tests/admin_edit_delete_flow.js (new)", "/app/backend/tests/test_wheelspa_api.py (added 2 unauth tests for admin endpoints)"],
+  "success_rate": {"backend": "97% (66/68 checks; 1 is a 500 on blank gst_pct, 1 is voided sales still listed)", "frontend": "100% of tested UI flows"},
+  "test_credentials": "From /app/memory/test_credentials.md: admin/accounts/mgmt/investor .test+clerk_test@example.com / Wheelspa#Test2026!. All worked.",
+  "seed_data_creation": "TEST records created, all net-zero on balances: PO-0003 TEST_Supplier_Edited (2 rolls, voided; roll renamed TEST-ROLL-60438B); SO-00008 TEST_Customer Edited (voided; its RCP-00006 deleted, TRF-00008 voided); SO-00009 (permanently deleted); PO-0004 TEST_UI_Supplier2 (1 roll WSP-PPF-2026-0075-T, voided); SO-00010 TEST_UI Customer Renamed (deleted; RCP-00007 voided); CAP-0002 (deleted); TEST_Investor Edited (deleted). Seeded investor INV-001 phone was edited and reverted to ''. Investor A balances end equal to the start (invested 25L, allocated 22.5L, available 2.5L).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run the in-browser API suite: sign in as admin, then page.evaluate(open('/app/backend/tests/admin_edit_delete_flow.js').read()). It returns PASS/FAIL lines and cleans up after itself, but sequence numbers advance. Edit dialog testids: <prefix>-edit-btn, <prefix>-edit-dialog, <prefix>-edit-<field>, <prefix>-edit-reason. Remove: <prefix>-delete-btn, <prefix>-remove-dialog, <prefix>-remove-mode-void|delete, <prefix>-remove-reason. Submit with '<dialog> button[type=submit]'. Prefixes: investor-INV-001, sale, collection-RCP-xxxxx, transfer-TRF-xxxxx, purchase-PO-xxxx, roll-<serial>, investment-CAP-xxxx. Sign out between roles with window.Clerk.signOut().",
+  "rca of the issue": "Blank gst_pct 500: edit_record line 162 calls float(fields['gst_pct']) without validation (unlike money fields, which go through to_paise and its HTTPException). Voided sale listed: the GET /sales query has no voided filter, while investors/purchases/rolls/collections/investments do."
+}

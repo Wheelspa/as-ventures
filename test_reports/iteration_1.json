@@ -1,0 +1,58 @@
+{
+  "summary": "First full E2E run (backend via in-browser authenticated fetch with fresh Clerk getToken() per call + UI via Playwright) across all 4 roles. Everything on the review list passed: Clerk sign-in (the client-trust code 424242 screen appeared and was handled), refresh keeps the session, sign-out goes back to /sign-in, no token or a bad token gives 401. Seeded acceptance scenario matches exactly (25L invested, 22.5L allocated, 2.5L available, pricing 31,250/9,375/4,687.50/4,687.50/40,625/7,312.50/47,937.50; SO-00001..07 statuses correct). Accounts flow: create sale (live preview), invoice (roll becomes Sold), partial and full collection, transfer proof upload, all checked by API and UI. Backend guards: same roll sold twice gives 409, collection on a reserved order gives 400, excess collection gives 400, a transfer above recoverable gives 400 with the max shown, a transfer without a document is rejected, a bad file type gives 400, buying over available funds gives 400, funding % not equal to 100 gives 400. Management: verify gives Settled only after both principal and margin are verified, a second verify gives 409, investor balances moved by exactly the transfer amounts. Accounts cannot verify, reverse, or see audit/users (403). Terms: accounts proposes, cannot approve own (403), management approves, a second decision gives 409. Ledger: an ADJUSTMENT reversal creates a negative entry, the original is kept and flagged reversed; reversing twice gives 409; a workflow entry gives 400; CAPITAL_RECEIVED reversal is blocked when capital is already deployed. All 12 reports return JSON, PDF and XLSX (200, non-empty), and the UI Excel download works. Publish statement works, bad month gives 400. Reconciliation shows all checks reconciled before and after every test action. Investor: sees only own data, write endpoints give 403, audit report is hidden, no Record/Upload/Verify/New buttons, Acknowledge and Raise query work, staff reply sets the query to Answered. Users: pre-approve email works; role change works with validation (investor without link gives 400, bogus role gives 403). The pending role sees the 'Access pending approval' screen and APIs give 403. Mobile 390px: dashboard, sales, settlements and ledger were fine. Sale detail (965px) and Reports (1074px) overflowed horizontally and the price amounts were cut off; I fixed this (CSS only) and confirmed both are now 390px.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/ledger/{txn_id}/reverse (SUPPLIER_PAYMENT)", "issue": "Reversing a SUPPLIER_PAYMENT posts a negative ledger entry but does not decrement purchases.amount_paid or recompute payment_status. The purchase still shows paid while the ledger says otherwise. Code review finding, not run, so as not to disturb seeded purchases."},
+      {"endpoint": "POST /api/ledger/{txn_id}/reverse (CAPITAL_RECEIVED)", "issue": "The investments record (CAP-xxxx) is not marked reversed. The investor's Investments tab would still list the capital even though invested was decremented. Code review finding."},
+      {"endpoint": "finance.settlement_status", "issue": "'overdue' is checked before 'verification_pending'. SO-00004 (principal verified, margin proof awaiting verification, due 2026-10-21) shows 'Proof awaiting verification' today but will flip to 'Overdue' on 2026-10-22 even though Wheelspa has already uploaded the proof. Decide whether committed-but-unverified amounts should count against overdue. The seeded acceptance statuses depend on the date."},
+      {"endpoint": "POST /api/settlements/{id}/ack", "issue": "An investor can acknowledge a settlement in any status (even awaiting invoice), and acknowledging again silently overwrites the previous ack. Consider allowing it only for settled or partially paid settlements, or keeping an ack history."},
+      {"endpoint": "POST /api/settlements/{id}/transfers", "issue": "Missing doc_id (null) returns a raw Pydantic 422, and the UI toast shows 'doc_id: Input should be a valid string'. It needs a friendly message, e.g. 'Bank transfer proof is required'."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "SaleDetail / Reports / RollTrace / Dashboard grids (mobile)", "issue": "Horizontal overflow at 390px: implicit auto grid track stretched by wide tables (sale detail 965px, reports 1074px), and the pricing amounts were off-screen. FIXED by adding grid-cols-1 base and making the Breakdown label wrap (whitespace-pre-wrap + shrink-0 value). Re-checked: 390px.", "selector": "[data-testid=sale-breakdown], [data-testid=report-list]", "priority": "HIGH (fixed)"},
+      {"component": "PendingPage", "issue": "At 390px the 'Access pending approval' card overflows on the right because the long monospace email does not wrap. Add break-all / overflow-wrap:anywhere.", "selector": "[data-testid=pending-access]", "priority": "LOW"},
+      {"component": "SettlementCard", "issue": "The 'Upload transfer proof' button stays visible when the whole recoverable amount is already committed (max ₹0.00). Acknowledge stays visible for unsettled or already-acknowledged settlements.", "selector": "[data-testid^=upload-transfer-], [data-testid^=ack-]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "All forms (sale, invoice, collection, transfer, purchase, terms, ledger and report filters)", "issues": ["Uses the browser's native <input type=date> picker (shows mm/dd/yyyy, inconsistent with the IST/Indian dd MMM yyyy display) instead of the shadcn Calendar/Popover", "NSelect is a native <select>, which looks inconsistent with the dark theme dropdown list"]},
+      {"screen": "Cancel order / Reject transfer / Ledger reverse / Acknowledge", "issues": ["Reasons and notes are collected with window.prompt(). Use a shadcn Dialog with a textarea and validation (min 3 chars is enforced only on the backend)."]},
+      {"screen": "Purchases dialog", "issues": ["The preview shows 'Investor capital allocated' but does not warn when it exceeds the investor's available funds. The user only learns this after submitting."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_wheelspa_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "On SUPPLIER_PAYMENT reversal, also $inc purchases.amount_paid by -amount and recompute payment_status. On CAPITAL_RECEIVED reversal, mark the investment record reversed.",
+    "Decide the settlement_status precedence: committed-but-unverified transfers should probably show 'verification_pending' rather than 'overdue'. Otherwise SO-00004 becomes Overdue from 2026-10-22.",
+    "Restrict ack to meaningful statuses and keep an ack history. Hide the Acknowledge button when not applicable.",
+    "Give a friendly validation message when the transfer proof file is missing (validate client-side and on the backend before Pydantic).",
+    "Hide 'Upload transfer proof' when the remaining recoverable (recoverable - committed) is 0 for both kinds.",
+    "Wrap the long email on the PendingPage at mobile widths.",
+    "Replace the native date inputs with the shadcn Calendar and window.prompt with Dialogs (design polish)."
+  ],
+  "critical_code_review_comments": [
+    "Money logic is solid: integer paise, Decimal ROUND_HALF_UP, atomic conditional updates ($expr guards) for funds allocation, collections and transfer commitments. Same-roll double-sale is guarded by a status CAS plus a unique index.",
+    "ledger reversal: only CAPITAL_RECEIVED adjusts the source document. The other REVERSIBLE types (SUPPLIER_PAYMENT, REFUND, etc.) can drift from their source docs. Reconciliation does not check purchases.amount_paid against the SUPPLIER_PAYMENT ledger, so this drift would go unnoticed. Consider adding that check.",
+    "Partial-collection proration uses floor (x*col//total). The rounding residue is only reconciled on full payment. Fine, but document it for the CA.",
+    "Accounts verifying any transfer gets a generic 403 'Not allowed' from the role gate. The uploader self-verify rule only matters for admin-less cases, and admins are exempt. OK.",
+    "/api/documents validates the extension only, not the content type or magic bytes. Acceptable for an MVP."
+  ],
+  "updated_files": [
+    "/app/frontend/src/pages/SaleDetail.jsx (grid-cols-1)",
+    "/app/frontend/src/pages/Reports.jsx (grid-cols-1)",
+    "/app/frontend/src/pages/RollTrace.jsx (grid-cols-1)",
+    "/app/frontend/src/pages/Dashboard.jsx (grid-cols-1)",
+    "/app/frontend/src/pages/Sales.jsx (Breakdown label whitespace-pre-wrap, value shrink-0)",
+    "/app/backend/tests/test_wheelspa_api.py (new)"
+  ],
+  "success_rate": {"backend": "100% of requested flows (5 minor logic/code-review findings)", "frontend": "~95% (mobile overflow fixed; minor UX issues)"},
+  "test_credentials": "From /app/memory/test_credentials.md: admin/accounts/mgmt/investor .test+clerk_test@example.com / Wheelspa#Test2026! (code 424242). All worked. The accounts user role was temporarily set to pending to test the pending screen and was restored to accounts.",
+  "seed_data_creation": "Test records created: SO-00008 'TEST_Customer API' (WSP-PPF-2026-0008, settled), SO-00009 'TEST_Customer UI' (cancelled), SO-00010 'TEST_Customer UI Flow' (WSP-PPF-2026-0009, settled); purchase PO-0003 TEST_Supplier (1 roll WSP-PPF-2026-0073, so available is now ₹2,18,750); agreements v2 (eff 2027-01-01) and v3 (eff 2027-02-01), both approved, same values; ADJUSTMENT TXN-000066 (₹100) + reversal, and a ₹50 UI adjustment + reversal; QRY-0001 TEST_query (answered); invite test_preapproved+clerk_test@example.com (accounts); STL-00002 acknowledged by Test Investor (overwrote seed ack); statement published for 2026-10.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Clerk session tokens expire in about 60s, so API tests were run inside the browser via page.evaluate(fetch with await Clerk.session.getToken() per call). The pytest file runs unauth checks and skips authenticated ones unless WS_TOKEN_<ROLE> env vars are set. NSelect is a native <select>: use page.select_option. Form submit: '[data-testid=<dialog-testid>] button[type=submit]'. Upload input: '[data-testid=<testid>-input]'. Clerk sign-up on preview shows a Cloudflare 'Verify you are human' turnstile, so a fresh sign-up cannot be automated; pending was tested by temporarily setting a role to pending. A real pending user warke.sandeep@gmail.com exists; do not modify it.",
+  "rca of the issue": "Mobile overflow: <div className='grid gap-6 lg:grid-cols-5'> has no base column template. Below lg it uses an implicit 'auto' track, which sizes to the max-content of wide DataTables, so min-w-0 on the children did not help. The Breakdown label used whitespace-pre, which stopped the long GST label from wrapping. Fix: grid-cols-1 (minmax(0,1fr)) at base, plus whitespace-pre-wrap."
+}
