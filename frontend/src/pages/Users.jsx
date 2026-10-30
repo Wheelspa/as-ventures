@@ -40,7 +40,7 @@ export default function UsersPage() {
         <form onSubmit={add} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
           <Field label="Name"><Input data-testid="new-user-name" required value={f.name} onChange={set("name")} /></Field>
           <Field label="Email"><Input data-testid="new-user-email" type="email" required value={f.email} onChange={set("email")} /></Field>
-          <Field label="Password (min 8)"><Input data-testid="new-user-password" required minLength={8} value={f.password} onChange={set("password")} /></Field>
+          <Field label="Password (min 8)"><Input data-testid="new-user-password" type="password" required minLength={8} value={f.password} onChange={set("password")} /></Field>
           <Field label="Role"><NSelect testid="new-user-role" value={f.role} onChange={set("role")} options={roles.map((r) => ({ value: r.id, label: r.label }))} /></Field>
           {f.role === "investor" ? <Field label="Investor account"><NSelect testid="new-user-investor" value={f.investor_id} onChange={set("investor_id")} placeholder="Select" options={(investors || []).map((i) => ({ value: i.id, label: `${i.name} · ${i.code}` }))} /></Field> : <div />}
           <Button type="submit" data-testid="new-user-submit">Create login</Button>
